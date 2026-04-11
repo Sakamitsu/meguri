@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
+import { open } from '@tauri-apps/plugin-dialog'
 import { useAppState } from '../composables/useAppState'
 
 const { state, saveSettings } = useAppState()
@@ -29,6 +30,13 @@ watch(
   { immediate: true },
 )
 
+async function browseFolder() {
+  const selected = await open({ directory: true, multiple: false })
+  if (selected) {
+    form.images_path = selected as string
+  }
+}
+
 async function handleSave() {
   await saveSettings({ ...form })
 }
@@ -36,15 +44,22 @@ async function handleSave() {
 
 <template>
   <div class="form-body">
-    <label class="field">
+    <div class="field">
       <span class="field-label">Images folder</span>
-      <input
-        v-model="form.images_path"
-        type="text"
-        placeholder="/path/to/images"
-        class="field-input"
-      />
-    </label>
+      <div class="path-row">
+        <input
+          v-model="form.images_path"
+          type="text"
+          placeholder="/path/to/images"
+          class="field-input path-input"
+        />
+        <button class="browse-btn" @click="browseFolder">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
 
     <label class="field">
       <span class="field-label">Timer (minutes)</span>
@@ -115,6 +130,33 @@ async function handleSave() {
 
 .field-input:focus {
   border-color: var(--ctp-mauve);
+}
+
+.path-row {
+  display: flex;
+  gap: 4px;
+}
+
+.path-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.browse-btn {
+  background: var(--ctp-surface0);
+  border: 1px solid var(--ctp-surface1);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--ctp-subtext0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.browse-btn:hover {
+  background: var(--ctp-surface1);
+  color: var(--ctp-text);
 }
 
 .save-btn {
