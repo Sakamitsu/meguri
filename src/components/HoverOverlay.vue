@@ -54,7 +54,6 @@ const cornerTopRight = ref(false)
 
     <!-- Center: start/stop button -->
     <div class="center">
-      <!-- Timer display when running -->
       <span v-if="timerState === 'running'" class="timer-display">{{ displayTime }}</span>
 
       <button
@@ -127,17 +126,24 @@ const cornerTopRight = ref(false)
 }
 
 .center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .timer-display {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  white-space: nowrap;
   font-size: 12px;
   color: var(--ctp-subtext0);
   font-variant-numeric: tabular-nums;
 }
+
 
 .icon-btn {
   background: none;
