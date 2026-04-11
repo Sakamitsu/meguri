@@ -167,11 +167,7 @@ function startDrag() {
 
 .drag-btn {
   color: var(--ctp-overlay1);
-  cursor: grabbing;
-}
-
-.drag-btn:active {
-  cursor: grabbing;
+  cursor: default !important;
 }
 
 .drag-btn:hover {
