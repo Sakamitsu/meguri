@@ -11,10 +11,6 @@
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-position",
     "core:window:allow-current-monitor",
-    "core:window:allow-close",
-    "core:menu:allow-new",
-    "core:menu:allow-append",
-    "core:menu:allow-popup",
-    "core:menu:allow-set-text"
+    "core:window:allow-close"
   ]
 }
