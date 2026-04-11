@@ -6,10 +6,11 @@ import SettingsForm from './SettingsForm.vue'
 import ActionsManager from './ActionsManager.vue'
 import StatsDisplay from './StatsDisplay.vue'
 
-const { goToWidget, loadStats, applyWidgetPosition } = useAppState()
+const { goToWidget, loadStats, applyWidgetPosition, clampToScreen } = useAppState()
 
 onMounted(async () => {
   await getCurrentWindow().setSize(new (await import('@tauri-apps/api/dpi')).LogicalSize(350, 450))
+  await clampToScreen(350, 450)
   await loadStats()
 })
 

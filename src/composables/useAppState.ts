@@ -103,7 +103,7 @@ export function useAppState() {
   }
 
   const WIDGET_SIZE = 160
-  const MARGIN = 10
+  const MARGIN = 0 // or 10
 
   async function applyWidgetPosition() {
     const win = getCurrentWindow()
@@ -140,6 +140,19 @@ export function useAppState() {
     await win.setPosition(new LogicalPosition(x, y))
   }
 
+  async function clampToScreen(winW: number, winH: number) {
+    const win = getCurrentWindow()
+    const monitor = await currentMonitor()
+    if (!monitor) return
+    const scale = monitor.scaleFactor
+    const screenW = monitor.size.width / scale
+    const screenH = monitor.size.height / scale
+    const pos = await win.outerPosition()
+    const x = Math.min(Math.max(pos.x / scale, 0), screenW - winW)
+    const y = Math.min(Math.max(pos.y / scale, 0), screenH - winH)
+    await win.setPosition(new LogicalPosition(x, y))
+  }
+
   function goToSettings() {
     state.currentView = 'settings'
   }
@@ -161,6 +174,7 @@ export function useAppState() {
     logSession,
     loadStats,
     applyWidgetPosition,
+    clampToScreen,
     goToSettings,
     goToWidget,
   }
