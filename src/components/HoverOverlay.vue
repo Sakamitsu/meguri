@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import type { TimerState } from '../composables/useTimer'
 import { useAppState } from '../composables/useAppState'
+import { Menu } from '@tauri-apps/api/menu/menu'
+import { MenuItem } from '@tauri-apps/api/menu/menuItem'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
 defineProps<{
   timerState: TimerState
@@ -15,10 +18,40 @@ const emit = defineEmits<{
   stop: []
 }>()
 
-const { goToSettings } = useAppState()
+const { state, saveSettings, applyWidgetPosition, goToSettings } = useAppState()
 
 const cornerTopLeft = ref(false)
 const cornerTopRight = ref(false)
+
+const positionLabels: Record<string, string> = {
+  'bottom-left': 'Bottom left',
+  'top-left': 'Top left',
+  'top-right': 'Top right',
+  'bottom-right': 'Bottom right',
+}
+
+async function showPositionMenu(e: MouseEvent) {
+  e.preventDefault()
+  const items = await Promise.all(
+    Object.entries(positionLabels).map(([value, label]) =>
+      MenuItem.new({
+        text: `${state.settings.widget_position === value ? '● ' : '○ '}${label}`,
+        action: async () => {
+          state.settings.widget_position = value as typeof state.settings.widget_position
+          await saveSettings({ ...state.settings })
+          await applyWidgetPosition()
+        },
+      }),
+    ),
+  )
+  const menu = await Menu.new()
+  await menu.append(items)
+  await menu.popup()
+}
+
+function startDrag() {
+  getCurrentWindow().startDragging()
+}
 </script>
 
 <template>
@@ -36,19 +69,28 @@ const cornerTopRight = ref(false)
       </Transition>
     </div>
 
-    <!-- Top-right: settings -->
+    <!-- Top-right: drag + settings -->
     <div
       class="corner top-right"
       @mouseenter="cornerTopRight = true"
       @mouseleave="cornerTopRight = false"
     >
       <Transition name="fade">
-        <button v-if="cornerTopRight" class="icon-btn settings-btn" @click="goToSettings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
+        <div v-if="cornerTopRight" class="top-right-buttons">
+          <button class="icon-btn drag-btn" @mousedown="startDrag" @contextmenu="showPositionMenu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
+              <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+              <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
+            </svg>
+          </button>
+          <button class="icon-btn settings-btn" @click="goToSettings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
       </Transition>
     </div>
 
@@ -104,7 +146,7 @@ const cornerTopRight = ref(false)
 .top-left {
   top: 0;
   left: 0;
-  width: calc(100% - 50px);
+  width: calc(100% - 70px);
   justify-content: flex-start;
   padding-left: 8px;
 }
@@ -112,8 +154,29 @@ const cornerTopRight = ref(false)
 .top-right {
   top: 0;
   right: 0;
+  width: 70px;
   justify-content: flex-end;
-  padding-right: 8px;
+  padding-right: 6px;
+}
+
+.top-right-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.drag-btn {
+  color: var(--ctp-overlay1);
+  cursor: grabbing;
+}
+
+.drag-btn:active {
+  cursor: grabbing;
+}
+
+.drag-btn:hover {
+  color: var(--ctp-lavender);
+  background: rgba(180, 190, 254, 0.1);
 }
 
 .action-name {

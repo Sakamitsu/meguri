@@ -22,7 +22,7 @@ async function handleBack() {
 
 <template>
   <div class="settings-view">
-    <header class="settings-header">
+    <header class="settings-header" data-tauri-drag-region>
       <button class="back-btn" @click="handleBack">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="m15 18-6-6 6-6" />
