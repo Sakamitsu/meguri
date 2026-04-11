@@ -6,7 +6,7 @@ import SettingsForm from './SettingsForm.vue'
 import ActionsManager from './ActionsManager.vue'
 import StatsDisplay from './StatsDisplay.vue'
 
-const { goToWidget, loadStats } = useAppState()
+const { goToWidget, loadStats, applyWidgetPosition } = useAppState()
 
 onMounted(async () => {
   await getCurrentWindow().setSize(new (await import('@tauri-apps/api/dpi')).LogicalSize(350, 450))
@@ -15,6 +15,7 @@ onMounted(async () => {
 
 async function handleBack() {
   await getCurrentWindow().setSize(new (await import('@tauri-apps/api/dpi')).LogicalSize(160, 160))
+  await applyWidgetPosition()
   goToWidget()
 }
 </script>

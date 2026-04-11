@@ -8,6 +8,12 @@ pub struct Settings {
     pub images_path: String,
     pub timer_minutes: u32,
     pub confirmation_minutes: u32,
+    #[serde(default = "default_widget_position")]
+    pub widget_position: String,
+}
+
+fn default_widget_position() -> String {
+    "bottom-left".to_string()
 }
 
 impl Default for Settings {
@@ -16,6 +22,7 @@ impl Default for Settings {
             images_path: String::new(),
             timer_minutes: 10,
             confirmation_minutes: 1,
+            widget_position: default_widget_position(),
         }
     }
 }

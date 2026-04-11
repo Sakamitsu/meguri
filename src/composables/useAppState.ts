@@ -1,10 +1,13 @@
 import { reactive, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { getCurrentWindow, currentMonitor } from '@tauri-apps/api/window'
+import { LogicalPosition } from '@tauri-apps/api/dpi'
 
 interface Settings {
   images_path: string
   timer_minutes: number
   confirmation_minutes: number
+  widget_position: 'bottom-left' | 'top-left' | 'top-right' | 'bottom-right'
 }
 
 interface Action {
@@ -30,6 +33,7 @@ const state = reactive({
     images_path: '',
     timer_minutes: 10,
     confirmation_minutes: 1,
+    widget_position: 'bottom-left',
   } as Settings,
   actions: [] as Action[],
   stats: [] as StatEntry[],
@@ -98,6 +102,44 @@ export function useAppState() {
     state.stats = await invoke<StatEntry[]>('get_stats')
   }
 
+  const WIDGET_SIZE = 160
+  const MARGIN = 10
+
+  async function applyWidgetPosition() {
+    const win = getCurrentWindow()
+    const monitor = await currentMonitor()
+    if (!monitor) return
+    const { width, height } = monitor.size
+    const scale = monitor.scaleFactor
+    const logicalW = width / scale
+    const logicalH = height / scale
+
+    let x: number
+    let y: number
+
+    switch (state.settings.widget_position) {
+      case 'top-left':
+        x = MARGIN
+        y = MARGIN
+        break
+      case 'top-right':
+        x = logicalW - WIDGET_SIZE - MARGIN
+        y = MARGIN
+        break
+      case 'bottom-right':
+        x = logicalW - WIDGET_SIZE - MARGIN
+        y = logicalH - WIDGET_SIZE - MARGIN
+        break
+      case 'bottom-left':
+      default:
+        x = MARGIN
+        y = logicalH - WIDGET_SIZE - MARGIN
+        break
+    }
+
+    await win.setPosition(new LogicalPosition(x, y))
+  }
+
   function goToSettings() {
     state.currentView = 'settings'
   }
@@ -118,6 +160,7 @@ export function useAppState() {
     setActiveAction,
     logSession,
     loadStats,
+    applyWidgetPosition,
     goToSettings,
     goToWidget,
   }

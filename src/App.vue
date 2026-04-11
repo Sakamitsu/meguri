@@ -4,11 +4,12 @@ import { useAppState } from './composables/useAppState'
 import WidgetView from './components/WidgetView.vue'
 import SettingsView from './components/SettingsView.vue'
 
-const { state, loadData, getRandomImage } = useAppState()
+const { state, loadData, getRandomImage, applyWidgetPosition } = useAppState()
 
 onMounted(async () => {
   await loadData()
   await getRandomImage()
+  await applyWidgetPosition()
 })
 </script>
 

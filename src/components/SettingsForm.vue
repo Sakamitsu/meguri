@@ -8,7 +8,15 @@ const form = reactive({
   images_path: state.settings.images_path,
   timer_minutes: state.settings.timer_minutes,
   confirmation_minutes: state.settings.confirmation_minutes,
+  widget_position: state.settings.widget_position,
 })
+
+const positionOptions = [
+  { value: 'bottom-left', label: 'Bottom left' },
+  { value: 'top-left', label: 'Top left' },
+  { value: 'top-right', label: 'Top right' },
+  { value: 'bottom-right', label: 'Bottom right' },
+] as const
 
 watch(
   () => state.settings,
@@ -16,6 +24,7 @@ watch(
     form.images_path = s.images_path
     form.timer_minutes = s.timer_minutes
     form.confirmation_minutes = s.confirmation_minutes
+    form.widget_position = s.widget_position
   },
   { immediate: true },
 )
@@ -55,6 +64,19 @@ async function handleSave() {
         min="1"
         class="field-input"
       />
+    </label>
+
+    <label class="field">
+      <span class="field-label">Widget position</span>
+      <select v-model="form.widget_position" class="field-input">
+        <option
+          v-for="opt in positionOptions"
+          :key="opt.value"
+          :value="opt.value"
+        >
+          {{ opt.label }}
+        </option>
+      </select>
     </label>
 
     <button class="save-btn" @click="handleSave">Save</button>
