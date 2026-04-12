@@ -117,6 +117,7 @@ async function handleBack() {
 
 .settings-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 8px;
   display: flex;
@@ -127,7 +128,7 @@ async function handleBack() {
 details {
   background: var(--ctp-mantle);
   border-radius: 8px;
-  overflow: hidden;
+  flex-shrink: 0;
 }
 
 summary {
