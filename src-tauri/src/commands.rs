@@ -1,7 +1,7 @@
 use crate::data::{self, Action, AppData, Settings, StatEntry};
 use chrono::Utc;
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 use uuid::Uuid;
 
 pub type AppState = Mutex<AppData>;
@@ -80,3 +80,88 @@ pub fn log_session(action_name: String, duration_minutes: u32, state: State<'_, 
 pub fn get_stats(state: State<'_, AppState>) -> Vec<StatEntry> {
     state.lock().unwrap().stats.clone()
 }
+
+const WIDGET_SIZE: f64 = 160.0;
+const TIKTOK_WIDTH: f64 = 244.0;
+const TIKTOK_HEIGHT: f64 = 270.0;
+const TITLEBAR_HEIGHT: f64 = 28.0;
+const CONTENT_HEIGHT: f64 = TIKTOK_HEIGHT - TITLEBAR_HEIGHT;
+
+#[tauri::command]
+pub async fn open_tiktok(app: AppHandle, widget_position: String) -> Result<(), String> {
+    if app.get_webview("tiktok").is_some() {
+        return Ok(());
+    }
+
+    let main_window = app.get_window("main").ok_or("Main window not found")?;
+    let tiktok_above = widget_position.contains("bottom");
+    let widget_right = widget_position.contains("right");
+
+    // Current widget position on screen
+    let pos = main_window.outer_position().map_err(|e| e.to_string())?;
+    let scale = main_window.scale_factor().map_err(|e| e.to_string())?;
+    let cx = pos.x as f64 / scale;
+    let cy = pos.y as f64 / scale;
+
+    // Keep widget visually in place after expansion
+    let new_x = if widget_right { cx - (TIKTOK_WIDTH - WIDGET_SIZE) } else { cx };
+    let new_y = if tiktok_above { cy - TIKTOK_HEIGHT } else { cy };
+
+    // TikTok webview Y within the expanded window
+    let webview_y = if tiktok_above { TITLEBAR_HEIGHT } else { WIDGET_SIZE + TITLEBAR_HEIGHT };
+
+    // Resize & reposition main window
+    main_window
+        .set_size(tauri::LogicalSize::new(TIKTOK_WIDTH, WIDGET_SIZE + TIKTOK_HEIGHT))
+        .map_err(|e| e.to_string())?;
+    main_window
+        .set_position(tauri::LogicalPosition::new(new_x, new_y))
+        .map_err(|e| e.to_string())?;
+
+    // Add TikTok as child webview inside main window
+    let url = "https://www.tiktok.com/foryou"
+        .parse()
+        .map_err(|e| format!("Invalid URL: {}", e))?;
+
+    main_window
+        .add_child(
+            tauri::webview::WebviewBuilder::new("tiktok", tauri::WebviewUrl::External(url))
+                .devtools(true)
+                .on_navigation(|_url| true),
+            tauri::LogicalPosition::new(0.0, webview_y),
+            tauri::LogicalSize::new(TIKTOK_WIDTH, CONTENT_HEIGHT),
+        )
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn close_tiktok(app: AppHandle, widget_position: String) -> Result<(), String> {
+    if let Some(webview) = app.get_webview("tiktok") {
+        webview.close().map_err(|e| e.to_string())?;
+    }
+
+    let main_window = app.get_window("main").ok_or("Main window not found")?;
+    let tiktok_above = widget_position.contains("bottom");
+    let widget_right = widget_position.contains("right");
+
+    let pos = main_window.outer_position().map_err(|e| e.to_string())?;
+    let scale = main_window.scale_factor().map_err(|e| e.to_string())?;
+    let cx = pos.x as f64 / scale;
+    let cy = pos.y as f64 / scale;
+
+    // Reverse the expansion offset
+    let new_x = if widget_right { cx + (TIKTOK_WIDTH - WIDGET_SIZE) } else { cx };
+    let new_y = if tiktok_above { cy + TIKTOK_HEIGHT } else { cy };
+
+    main_window
+        .set_size(tauri::LogicalSize::new(WIDGET_SIZE, WIDGET_SIZE))
+        .map_err(|e| e.to_string())?;
+    main_window
+        .set_position(tauri::LogicalPosition::new(new_x, new_y))
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+

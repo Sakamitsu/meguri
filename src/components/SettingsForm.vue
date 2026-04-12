@@ -10,6 +10,7 @@ const form = reactive({
   timer_minutes: state.settings.timer_minutes,
   confirmation_minutes: state.settings.confirmation_minutes,
   widget_position: state.settings.widget_position,
+  tiktok_mode: state.settings.tiktok_mode,
 })
 
 const positionOptions = [
@@ -26,6 +27,7 @@ watch(
     form.timer_minutes = s.timer_minutes
     form.confirmation_minutes = s.confirmation_minutes
     form.widget_position = s.widget_position
+    form.tiktok_mode = s.tiktok_mode
   },
   { immediate: true },
 )
@@ -94,6 +96,15 @@ async function handleSave() {
       </select>
     </label>
 
+    <label class="field checkbox-field">
+      <input
+        v-model="form.tiktok_mode"
+        type="checkbox"
+        class="checkbox-input"
+      />
+      <span class="field-label">TikTok mode</span>
+    </label>
+
     <button class="save-btn" @click="handleSave">Save</button>
   </div>
 </template>
@@ -157,6 +168,19 @@ async function handleSave() {
 .browse-btn:hover {
   background: var(--ctp-surface1);
   color: var(--ctp-text);
+}
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--ctp-mauve);
+  cursor: pointer;
 }
 
 .save-btn {

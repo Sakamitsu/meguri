@@ -6,7 +6,7 @@ import ImageDisplay from './ImageDisplay.vue'
 import HoverOverlay from './HoverOverlay.vue'
 import ConfirmationPulse from './ConfirmationPulse.vue'
 
-const { state, activeAction, logSession, getRandomImage } = useAppState()
+const { state, activeAction, logSession, getRandomImage, incrementTiktokViews } = useAppState()
 const hovered = ref(false)
 const showContextMenu = ref(false)
 
@@ -30,6 +30,9 @@ function handleStop() {
 
 async function handleConfirm() {
   await confirm(state.settings.timer_minutes, state.settings.confirmation_minutes)
+  if (state.settings.tiktok_mode) {
+    incrementTiktokViews()
+  }
   getRandomImage()
 }
 
@@ -46,6 +49,9 @@ async function forceComplete() {
   const action = activeAction.value
   if (action && elapsedMinutes > 0) {
     await logSession(action.name, elapsedMinutes)
+  }
+  if (state.settings.tiktok_mode) {
+    incrementTiktokViews()
   }
   await getRandomImage()
 }
@@ -78,6 +84,8 @@ async function refreshImage() {
       :display-time="displayTime"
       :progress="progress"
       :active-action-name="activeAction?.name ?? ''"
+      :tiktok-mode="state.settings.tiktok_mode"
+      :tiktok-views="state.tiktokViews"
       @start="handleStart"
       @stop="handleStop"
     />

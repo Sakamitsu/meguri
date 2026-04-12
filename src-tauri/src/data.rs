@@ -10,6 +10,8 @@ pub struct Settings {
     pub confirmation_minutes: u32,
     #[serde(default = "default_widget_position")]
     pub widget_position: String,
+    #[serde(default)]
+    pub tiktok_mode: bool,
 }
 
 fn default_widget_position() -> String {
@@ -23,6 +25,7 @@ impl Default for Settings {
             timer_minutes: 10,
             confirmation_minutes: 1,
             widget_position: default_widget_position(),
+            tiktok_mode: false,
         }
     }
 }

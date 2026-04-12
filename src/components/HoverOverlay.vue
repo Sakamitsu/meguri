@@ -9,6 +9,8 @@ defineProps<{
   displayTime: string
   progress: number
   activeActionName: string
+  tiktokMode: boolean
+  tiktokViews: number
 }>()
 
 const emit = defineEmits<{
@@ -16,10 +18,11 @@ const emit = defineEmits<{
   stop: []
 }>()
 
-const { state, saveSettings, applyWidgetPosition, goToSettings } = useAppState()
+const { state, saveSettings, applyWidgetPosition, goToSettings, openTikTok } = useAppState()
 
 const cornerTopLeft = ref(false)
 const cornerTopRight = ref(false)
+const cornerBottomRight = ref(false)
 const showMenu = ref(false)
 
 const positionOptions = [
@@ -83,6 +86,30 @@ function startDrag() {
             </svg>
           </button>
         </div>
+      </Transition>
+    </div>
+
+    <!-- Bottom-right: tiktok -->
+    <div
+      v-if="tiktokMode"
+      class="corner bottom-right"
+      @mouseenter="cornerBottomRight = true"
+      @mouseleave="cornerBottomRight = false"
+    >
+      <Transition name="fade">
+        <button
+          v-if="cornerBottomRight"
+          class="icon-btn tiktok-btn"
+          :class="{ disabled: tiktokViews <= 0 }"
+          :disabled="tiktokViews <= 0"
+          :title="`${tiktokViews} view${tiktokViews !== 1 ? 's' : ''} available`"
+          @click="openTikTok"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78c.27 0 .54.04.8.1v-3.5a6.37 6.37 0 0 0-.8-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 10.86 4.34A6.28 6.28 0 0 0 15.85 15V8.37a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.03.2z"/>
+          </svg>
+          <span class="tiktok-count">{{ tiktokViews }}</span>
+        </button>
       </Transition>
     </div>
 
@@ -182,6 +209,42 @@ function startDrag() {
 .drag-btn:hover {
   color: var(--ctp-lavender);
   background: rgba(180, 190, 254, 0.1);
+}
+
+.bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 50px;
+  height: 40px;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding-right: 8px;
+  padding-bottom: 6px;
+  padding-top: 0;
+}
+
+.tiktok-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ctp-text);
+}
+
+.tiktok-btn:hover:not(:disabled) {
+  color: var(--ctp-pink);
+  background: rgba(245, 194, 231, 0.1);
+}
+
+.tiktok-btn.disabled {
+  color: var(--ctp-overlay0);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.tiktok-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .action-name {

@@ -8,6 +8,7 @@ interface Settings {
   timer_minutes: number
   confirmation_minutes: number
   widget_position: 'bottom-left' | 'top-left' | 'top-right' | 'bottom-right'
+  tiktok_mode: boolean
 }
 
 interface Action {
@@ -34,11 +35,14 @@ const state = reactive({
     timer_minutes: 10,
     confirmation_minutes: 1,
     widget_position: 'bottom-left',
+    tiktok_mode: false,
   } as Settings,
   actions: [] as Action[],
   stats: [] as StatEntry[],
   currentView: 'widget' as 'widget' | 'settings',
   imageDataUrl: '' as string,
+  tiktokViews: 0,
+  tiktokOpen: false,
 })
 
 export function useAppState() {
@@ -153,7 +157,26 @@ export function useAppState() {
     await win.setPosition(new LogicalPosition(x, y))
   }
 
-  function goToSettings() {
+  function incrementTiktokViews() {
+    state.tiktokViews++
+  }
+
+  async function openTikTok() {
+    if (state.tiktokViews <= 0 || state.tiktokOpen) return
+    await invoke('open_tiktok', { widgetPosition: state.settings.widget_position })
+    state.tiktokOpen = true
+  }
+
+  async function closeTikTok() {
+    if (!state.tiktokOpen) return
+    await invoke('close_tiktok', { widgetPosition: state.settings.widget_position })
+    state.tiktokOpen = false
+  }
+
+  async function goToSettings() {
+    if (state.tiktokOpen) {
+      await closeTikTok()
+    }
     state.currentView = 'settings'
   }
 
@@ -177,5 +200,8 @@ export function useAppState() {
     clampToScreen,
     goToSettings,
     goToWidget,
+    incrementTiktokViews,
+    openTikTok,
+    closeTikTok,
   }
 }

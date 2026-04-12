@@ -156,4 +156,5 @@ summary::before {
 details[open] summary::before {
   transform: rotate(90deg);
 }
+
 </style>

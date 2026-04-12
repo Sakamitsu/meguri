@@ -22,6 +22,8 @@ pub fn run() {
             commands::set_active_action,
             commands::log_session,
             commands::get_stats,
+            commands::open_tiktok,
+            commands::close_tiktok,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
