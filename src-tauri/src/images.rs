@@ -5,7 +5,12 @@ use std::path::Path;
 
 const IMAGE_EXTENSIONS: &[&str] = &["png", "jpg", "jpeg", "gif", "webp", "bmp"];
 
-pub fn get_random_image_base64(images_path: &str) -> Option<String> {
+pub struct ImageResult {
+    pub data_url: String,
+    pub path: String,
+}
+
+pub fn get_random_image_base64(images_path: &str) -> Option<ImageResult> {
     if images_path.is_empty() {
         return None;
     }
@@ -52,5 +57,8 @@ pub fn get_random_image_base64(images_path: &str) -> Option<String> {
     };
 
     let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
-    Some(format!("data:{};base64,{}", mime, b64))
+    Some(ImageResult {
+        data_url: format!("data:{};base64,{}", mime, b64),
+        path: path.to_string_lossy().to_string(),
+    })
 }

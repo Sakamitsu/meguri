@@ -6,7 +6,7 @@ import ImageDisplay from './ImageDisplay.vue'
 import HoverOverlay from './HoverOverlay.vue'
 import ConfirmationPulse from './ConfirmationPulse.vue'
 
-const { state, activeAction, logSession, getRandomImage, incrementTiktokViews, saveSettings, applyWidgetPosition } = useAppState()
+const { state, activeAction, logSession, getRandomImage, incrementTiktokViews, saveSettings, applyWidgetPosition, closeTikTok, openTikTok } = useAppState()
 
 const positionValues = ['bottom-left', 'top-left', 'top-right', 'bottom-right'] as const
 const positionDots: Record<string, { cx: number; cy: number }> = {
@@ -18,9 +18,16 @@ const positionDots: Record<string, { cx: number; cy: number }> = {
 
 async function pickPosition(value: typeof state.settings.widget_position) {
   showContextMenu.value = false
+  const wasTiktokOpen = state.tiktokOpen
+  if (wasTiktokOpen) {
+    await closeTikTok()
+  }
   state.settings.widget_position = value
   await saveSettings({ ...state.settings })
   await applyWidgetPosition()
+  if (wasTiktokOpen) {
+    await openTikTok()
+  }
 }
 const hovered = ref(false)
 const showContextMenu = ref(false)

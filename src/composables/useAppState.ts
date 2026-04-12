@@ -9,6 +9,7 @@ interface Settings {
   confirmation_minutes: number
   widget_position: 'bottom-left' | 'top-left' | 'top-right' | 'bottom-right'
   tiktok_mode: boolean
+  tiktok_url: string
 }
 
 interface Action {
@@ -29,6 +30,8 @@ interface AppData {
   stats: StatEntry[]
 }
 
+let resizeUnlisten: (() => void) | null = null
+
 const state = reactive({
   settings: {
     images_path: '',
@@ -36,12 +39,14 @@ const state = reactive({
     confirmation_minutes: 1,
     widget_position: 'bottom-left',
     tiktok_mode: false,
+    tiktok_url: '',
   } as Settings,
   actions: [] as Action[],
   stats: [] as StatEntry[],
   currentView: 'widget' as 'widget' | 'settings',
   imageDataUrl: '' as string,
-  tiktokViews: 0,
+  imagePath: '' as string,
+  tiktokViews: 1,
   tiktokOpen: false,
 })
 
@@ -63,9 +68,10 @@ export function useAppState() {
   }
 
   async function getRandomImage() {
-    const url = await invoke<string | null>('get_random_image')
-    if (url) {
-      state.imageDataUrl = url
+    const result = await invoke<{ data_url: string; path: string } | null>('get_random_image')
+    if (result) {
+      state.imageDataUrl = result.data_url
+      state.imagePath = result.path
     }
   }
 
@@ -163,20 +169,39 @@ export function useAppState() {
 
   async function openTikTok() {
     if (state.tiktokViews <= 0 || state.tiktokOpen) return
-    await invoke('open_tiktok', { widgetPosition: state.settings.widget_position })
+    await invoke('open_tiktok', {
+      widgetPosition: state.settings.widget_position,
+      tiktokUrl: state.settings.tiktok_url,
+    })
     state.tiktokOpen = true
+
+    const win = getCurrentWindow()
+    resizeUnlisten = await win.onResized(async () => {
+      await invoke('sync_tiktok_webview', {
+        widgetPosition: state.settings.widget_position,
+      })
+    })
   }
 
   async function closeTikTok() {
     if (!state.tiktokOpen) return
+    if (resizeUnlisten) {
+      resizeUnlisten()
+      resizeUnlisten = null
+    }
     await invoke('close_tiktok', { widgetPosition: state.settings.widget_position })
     state.tiktokOpen = false
+  }
+
+  async function destroyTikTok() {
+    await invoke('destroy_tiktok')
   }
 
   async function goToSettings() {
     if (state.tiktokOpen) {
       await closeTikTok()
     }
+    await destroyTikTok()
     state.currentView = 'settings'
   }
 

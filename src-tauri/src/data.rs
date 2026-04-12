@@ -12,6 +12,8 @@ pub struct Settings {
     pub widget_position: String,
     #[serde(default)]
     pub tiktok_mode: bool,
+    #[serde(default)]
+    pub tiktok_url: String,
 }
 
 fn default_widget_position() -> String {
@@ -26,6 +28,7 @@ impl Default for Settings {
             confirmation_minutes: 1,
             widget_position: default_widget_position(),
             tiktok_mode: false,
+            tiktok_url: String::new(),
         }
     }
 }

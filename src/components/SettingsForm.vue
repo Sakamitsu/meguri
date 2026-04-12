@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { open } from '@tauri-apps/plugin-dialog'
 import { useAppState } from '../composables/useAppState'
 
 const { state, saveSettings } = useAppState()
+
+const copied = ref(false)
+let copiedTimeout: ReturnType<typeof setTimeout> | null = null
+
+async function copyImagePath() {
+  await navigator.clipboard.writeText(state.imagePath)
+  copied.value = true
+  if (copiedTimeout) clearTimeout(copiedTimeout)
+  copiedTimeout = setTimeout(() => { copied.value = false }, 2000)
+}
 
 const form = reactive({
   images_path: state.settings.images_path,
@@ -11,6 +21,7 @@ const form = reactive({
   confirmation_minutes: state.settings.confirmation_minutes,
   widget_position: state.settings.widget_position,
   tiktok_mode: state.settings.tiktok_mode,
+  tiktok_url: state.settings.tiktok_url,
 })
 
 const positionOptions = [
@@ -28,6 +39,7 @@ watch(
     form.confirmation_minutes = s.confirmation_minutes
     form.widget_position = s.widget_position
     form.tiktok_mode = s.tiktok_mode
+    form.tiktok_url = s.tiktok_url
   },
   { immediate: true },
 )
@@ -61,6 +73,14 @@ async function handleSave() {
           </svg>
         </button>
       </div>
+    </div>
+
+    <div v-if="state.imagePath" class="field">
+      <span class="field-label">Current image:</span>
+      <span class="image-path" @click="copyImagePath">{{ state.imagePath }}</span>
+      <Transition name="fade">
+        <span v-if="copied" class="copied-msg">Copied</span>
+      </Transition>
     </div>
 
     <label class="field">
@@ -103,6 +123,16 @@ async function handleSave() {
         class="checkbox-input"
       />
       <span class="field-label">TikTok mode</span>
+    </label>
+
+    <label v-if="form.tiktok_mode" class="field">
+      <span class="field-label">TikTok URL</span>
+      <input
+        v-model="form.tiktok_url"
+        type="text"
+        placeholder="https://www.tiktok.com/foryou"
+        class="field-input"
+      />
     </label>
 
     <button class="save-btn" @click="handleSave">Save</button>
@@ -168,6 +198,34 @@ async function handleSave() {
 .browse-btn:hover {
   background: var(--ctp-surface1);
   color: var(--ctp-text);
+}
+
+.image-path {
+  font-size: 11px;
+  color: var(--ctp-blue);
+  cursor: pointer;
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+.image-path:hover {
+  color: var(--ctp-sapphire);
+  text-decoration: underline;
+}
+
+.copied-msg {
+  font-size: 10px;
+  color: var(--ctp-green);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .checkbox-field {
