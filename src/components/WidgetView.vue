@@ -6,7 +6,22 @@ import ImageDisplay from './ImageDisplay.vue'
 import HoverOverlay from './HoverOverlay.vue'
 import ConfirmationPulse from './ConfirmationPulse.vue'
 
-const { state, activeAction, logSession, getRandomImage, incrementTiktokViews } = useAppState()
+const { state, activeAction, logSession, getRandomImage, incrementTiktokViews, saveSettings, applyWidgetPosition } = useAppState()
+
+const positionValues = ['bottom-left', 'top-left', 'top-right', 'bottom-right'] as const
+const positionDots: Record<string, { cx: number; cy: number }> = {
+  'bottom-left': { cx: 5, cy: 11 },
+  'top-left': { cx: 5, cy: 5 },
+  'top-right': { cx: 11, cy: 5 },
+  'bottom-right': { cx: 11, cy: 11 },
+}
+
+async function pickPosition(value: typeof state.settings.widget_position) {
+  showContextMenu.value = false
+  state.settings.widget_position = value
+  await saveSettings({ ...state.settings })
+  await applyWidgetPosition()
+}
 const hovered = ref(false)
 const showContextMenu = ref(false)
 
@@ -104,6 +119,21 @@ async function refreshImage() {
           <button class="menu-item" @click="refreshImage">
             Refresh image
           </button>
+          <div class="menu-divider" />
+          <div class="position-row">
+            <button
+              v-for="pos in positionValues"
+              :key="pos"
+              class="pos-btn"
+              :class="{ active: state.settings.widget_position === pos }"
+              @click="pickPosition(pos)"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16">
+                <rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <circle :cx="positionDots[pos].cx" :cy="positionDots[pos].cy" r="2" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -162,6 +192,41 @@ async function refreshImage() {
   color: var(--ctp-overlay0);
   cursor: default;
   opacity: 0.5;
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--ctp-surface1);
+  margin: 2px 4px;
+}
+
+.position-row {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 2px;
+}
+
+.pos-btn {
+  background: none;
+  border: none;
+  color: var(--ctp-overlay1);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s, background 0.1s;
+}
+
+.pos-btn:hover {
+  background: var(--ctp-surface0);
+  color: var(--ctp-text);
+}
+
+.pos-btn.active {
+  color: var(--ctp-mauve);
 }
 
 .fade-enter-active,

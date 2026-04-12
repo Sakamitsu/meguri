@@ -18,31 +18,11 @@ const emit = defineEmits<{
   stop: []
 }>()
 
-const { state, saveSettings, applyWidgetPosition, goToSettings, openTikTok } = useAppState()
+const { goToSettings, openTikTok } = useAppState()
 
 const cornerTopLeft = ref(false)
 const cornerTopRight = ref(false)
 const cornerBottomRight = ref(false)
-const showMenu = ref(false)
-
-const positionOptions = [
-  { value: 'bottom-left', label: 'Bottom left' },
-  { value: 'top-left', label: 'Top left' },
-  { value: 'top-right', label: 'Top right' },
-  { value: 'bottom-right', label: 'Bottom right' },
-] as const
-
-function openPositionMenu(e: MouseEvent) {
-  e.preventDefault()
-  showMenu.value = true
-}
-
-async function pickPosition(value: typeof state.settings.widget_position) {
-  showMenu.value = false
-  state.settings.widget_position = value
-  await saveSettings({ ...state.settings })
-  await applyWidgetPosition()
-}
 
 function startDrag() {
   getCurrentWindow().startDragging()
@@ -72,7 +52,7 @@ function startDrag() {
     >
       <Transition name="fade">
         <div v-if="cornerTopRight" class="top-right-buttons">
-          <button class="icon-btn drag-btn" @mousedown="startDrag" @contextmenu="openPositionMenu">
+          <button class="icon-btn drag-btn" @mousedown="startDrag">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
               <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
@@ -139,22 +119,6 @@ function startDrag() {
       </button>
     </div>
 
-    <!-- Position context menu -->
-    <Transition name="fade">
-      <div v-if="showMenu" class="menu-backdrop" @click="showMenu = false">
-        <div class="position-menu" @click.stop>
-          <button
-            v-for="opt in positionOptions"
-            :key="opt.value"
-            class="menu-item"
-            :class="{ active: state.settings.widget_position === opt.value }"
-            @click="pickPosition(opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>
 
@@ -321,48 +285,6 @@ function startDrag() {
   background: rgba(180, 190, 254, 0.1);
 }
 
-.menu-backdrop {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(17, 17, 27, 0.4);
-  z-index: 20;
-}
-
-.position-menu {
-  background: var(--ctp-mantle);
-  border: 1px solid var(--ctp-surface1);
-  border-radius: 8px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  min-width: 120px;
-}
-
-.menu-item {
-  background: none;
-  border: none;
-  color: var(--ctp-subtext1);
-  font-size: 12px;
-  font-family: inherit;
-  padding: 6px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s, color 0.1s;
-}
-
-.menu-item:hover {
-  background: var(--ctp-surface0);
-  color: var(--ctp-text);
-}
-
-.menu-item.active {
-  color: var(--ctp-mauve);
-  font-weight: 600;
-}
 
 .fade-enter-active,
 .fade-leave-active {
