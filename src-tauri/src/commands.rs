@@ -6,6 +6,8 @@ use uuid::Uuid;
 
 pub type AppState = Mutex<AppData>;
 
+pub struct TiktokButtonsHidden(pub Mutex<bool>);
+
 #[tauri::command]
 pub fn load_data(state: State<'_, AppState>) -> AppData {
     state.lock().unwrap().clone()
@@ -242,7 +244,7 @@ pub async fn open_tiktok_menu(app: AppHandle, widget_position: String) -> Result
     let titlebar_top = if widget_position.contains("bottom") { cy } else { cy + WIDGET_SIZE };
 
     let menu_w = 220.0;
-    let menu_h = 44.0;
+    let menu_h = 74.0;
     let menu_x = cx;
     let menu_y = titlebar_top + TITLEBAR_HEIGHT;
 
@@ -285,6 +287,29 @@ pub async fn tiktok_eval(app: AppHandle, js: String) -> Result<(), String> {
     let webview = app.get_webview("tiktok").ok_or("TikTok webview not found")?;
     webview.eval(&js).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_tiktok_buttons_hidden(state: State<'_, TiktokButtonsHidden>) -> bool {
+    *state.0.lock().unwrap()
+}
+
+#[tauri::command]
+pub async fn toggle_tiktok_buttons_hidden(
+    app: AppHandle,
+    hidden_state: State<'_, TiktokButtonsHidden>,
+) -> Result<bool, String> {
+    let mut hidden = hidden_state.0.lock().unwrap();
+    *hidden = !*hidden;
+    let new_val = *hidden;
+    drop(hidden);
+
+    if let Some(webview) = app.get_webview("tiktok") {
+        webview
+            .eval(&format!("window.__meguri_setHidden?.({})", new_val))
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(new_val)
 }
 
 #[tauri::command]

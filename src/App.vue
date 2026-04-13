@@ -9,7 +9,7 @@ import TiktokMenu from './components/TiktokMenu.vue'
 
 const isMenuView = window.location.search.includes('view=tiktok-menu')
 
-const { state, loadData, getRandomImage, applyWidgetPosition, closeTikTok } = useAppState()
+const { state, loadData, getRandomImage, applyWidgetPosition, closeTikTok, decrementTiktokViews } = useAppState()
 const { prevVideo, nextVideo } = useTiktokBridge()
 
 function openMenu() {
@@ -71,6 +71,13 @@ onMounted(async () => {
           </svg>
         </button>
         <div style="flex: 1" />
+        <button class="tiktok-views-btn" title="Use a view" @click="decrementTiktokViews">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12h8" />
+          </svg>
+          <span class="views-count">{{ state.tiktokViews }}</span>
+        </button>
         <button class="tiktok-nav-btn" title="Previous video" @click="prevVideo">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m18 15-6-6-6 6" />
@@ -130,6 +137,31 @@ onMounted(async () => {
 .tiktok-burger:hover {
   color: var(--ctp-text);
   background: var(--ctp-surface0);
+}
+
+.tiktok-views-btn {
+  background: none;
+  border: none;
+  color: var(--ctp-overlay0);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: color 0.1s, background 0.1s;
+  margin-right: 2px;
+}
+
+.tiktok-views-btn:hover {
+  color: var(--ctp-peach);
+  background: rgba(250, 179, 135, 0.1);
+}
+
+.views-count {
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .tiktok-nav-btn {

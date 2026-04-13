@@ -2,7 +2,7 @@ mod commands;
 mod data;
 mod images;
 
-use commands::AppState;
+use commands::{AppState, TiktokButtonsHidden};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,6 +13,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(AppState::new(app_data))
+        .manage(TiktokButtonsHidden(std::sync::Mutex::new(true)))
         .invoke_handler(tauri::generate_handler![
             commands::load_data,
             commands::save_settings,
@@ -30,6 +31,8 @@ pub fn run() {
             commands::open_tiktok_menu,
             commands::reset_tiktok_size,
             commands::tiktok_eval,
+            commands::get_tiktok_buttons_hidden,
+            commands::toggle_tiktok_buttons_hidden,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

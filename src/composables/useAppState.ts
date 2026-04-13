@@ -179,6 +179,10 @@ export function useAppState() {
     state.tiktokViews++
   }
 
+  function decrementTiktokViews() {
+    if (state.tiktokViews > 0) state.tiktokViews--
+  }
+
   async function openTikTok() {
     if (state.tiktokViews <= 0 || state.tiktokOpen) return
     await invoke('open_tiktok', {
@@ -186,6 +190,10 @@ export function useAppState() {
       tiktokUrl: state.settings.tiktok_url,
     })
     state.tiktokOpen = true
+
+    // Inject TikTok bridge init (hides UI elements, sets up observer)
+    const { useTiktokBridge } = await import('./useTiktokBridge')
+    useTiktokBridge().init()
 
     const win = getCurrentWindow()
     resizeUnlisten = await win.onResized(async () => {
@@ -238,6 +246,7 @@ export function useAppState() {
     goToSettings,
     goToWidget,
     incrementTiktokViews,
+    decrementTiktokViews,
     openTikTok,
     closeTikTok,
   }
