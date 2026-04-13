@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useAppState } from '../composables/useAppState'
 import SettingsForm from './SettingsForm.vue'
@@ -7,6 +7,8 @@ import ActionsManager from './ActionsManager.vue'
 import StatsDisplay from './StatsDisplay.vue'
 
 const { goToWidget, loadStats, applyWidgetPosition, clampToScreen } = useAppState()
+
+const activeTab = ref<'general' | 'actions' | 'stats'>('general')
 
 onMounted(async () => {
   await getCurrentWindow().setSize(new (await import('@tauri-apps/api/dpi')).LogicalSize(350, 450))
@@ -37,21 +39,16 @@ async function handleBack() {
       </button>
     </header>
 
+    <div class="tabs">
+      <button class="tab" :class="{ active: activeTab === 'general' }" @click="activeTab = 'general'">General</button>
+      <button class="tab" :class="{ active: activeTab === 'actions' }" @click="activeTab = 'actions'">Actions</button>
+      <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">Statistics</button>
+    </div>
+
     <div class="settings-content">
-      <details open>
-        <summary>General</summary>
-        <SettingsForm />
-      </details>
-
-      <details>
-        <summary>Actions</summary>
-        <ActionsManager />
-      </details>
-
-      <details>
-        <summary>Statistics</summary>
-        <StatsDisplay />
-      </details>
+      <SettingsForm v-if="activeTab === 'general'" />
+      <ActionsManager v-if="activeTab === 'actions'" />
+      <StatsDisplay v-if="activeTab === 'stats'" />
     </div>
   </div>
 </template>
@@ -115,46 +112,41 @@ async function handleBack() {
   color: var(--ctp-text);
 }
 
+.tabs {
+  display: flex;
+  background: var(--ctp-mantle);
+  padding: 4px;
+  gap: 2px;
+}
+
+.tab {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ctp-overlay0);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  color: var(--ctp-subtext1);
+  background: var(--ctp-surface0);
+}
+
+.tab.active {
+  color: var(--ctp-text);
+  background: var(--ctp-surface0);
+}
+
 .settings-content {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-details {
-  background: var(--ctp-mantle);
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-summary {
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ctp-subtext1);
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-summary:hover {
-  background: var(--ctp-surface0);
-}
-
-summary::before {
-  content: '▸';
-  font-size: 10px;
-  transition: transform 0.15s;
-}
-
-details[open] summary::before {
-  transform: rotate(90deg);
 }
 
 </style>

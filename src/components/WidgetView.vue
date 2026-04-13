@@ -66,7 +66,7 @@ function onWidgetContextMenu(e: MouseEvent) {
 async function forceComplete() {
   showContextMenu.value = false
   const elapsed = totalSeconds.value - remainingSeconds.value
-  const elapsedMinutes = Math.floor(elapsed / 60)
+  const elapsedMinutes = Math.ceil(elapsed / 60)
   stop()
   const action = activeAction.value
   if (action && elapsedMinutes > 0) {
