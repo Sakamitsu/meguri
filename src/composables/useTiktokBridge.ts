@@ -20,6 +20,7 @@ const HIDE_SELECTORS = [
   'button[data-e2e="browse-sound"]',
   'div[class*="MiniPlayerContainer"]',
   'div[class*="StyledAnimationWrapper"]',
+  'svg[data-e2e="browse-video-play"]'
 ]
 
 /** Build the init JS that runs once and watches forever */
