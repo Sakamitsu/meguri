@@ -281,6 +281,13 @@ pub async fn reset_tiktok_size(app: AppHandle, _widget_position: String) -> Resu
 }
 
 #[tauri::command]
+pub async fn tiktok_eval(app: AppHandle, js: String) -> Result<(), String> {
+    let webview = app.get_webview("tiktok").ok_or("TikTok webview not found")?;
+    webview.eval(&js).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn sync_tiktok_webview(app: AppHandle, widget_position: String) -> Result<(), String> {
     let webview = match app.get_webview("tiktok") {
         Some(wv) => wv,

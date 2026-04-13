@@ -29,6 +29,7 @@ pub fn run() {
             commands::sync_tiktok_webview,
             commands::open_tiktok_menu,
             commands::reset_tiktok_size,
+            commands::tiktok_eval,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

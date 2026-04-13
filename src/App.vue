@@ -2,6 +2,7 @@
 import { onMounted, computed } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useAppState } from './composables/useAppState'
+import { useTiktokBridge } from './composables/useTiktokBridge'
 import WidgetView from './components/WidgetView.vue'
 import SettingsView from './components/SettingsView.vue'
 import TiktokMenu from './components/TiktokMenu.vue'
@@ -9,6 +10,7 @@ import TiktokMenu from './components/TiktokMenu.vue'
 const isMenuView = window.location.search.includes('view=tiktok-menu')
 
 const { state, loadData, getRandomImage, applyWidgetPosition, closeTikTok } = useAppState()
+const { prevVideo, nextVideo } = useTiktokBridge()
 
 function openMenu() {
   invoke('open_tiktok_menu', { widgetPosition: state.settings.widget_position })
@@ -69,6 +71,16 @@ onMounted(async () => {
           </svg>
         </button>
         <div style="flex: 1" />
+        <button class="tiktok-nav-btn" title="Previous video" @click="prevVideo">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 15-6-6-6 6" />
+          </svg>
+        </button>
+        <button class="tiktok-nav-btn" title="Next video" @click="nextVideo">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
         <button class="tiktok-close" @click="closeTikTok">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6 6 18" /><path d="m6 6 12 12" />
@@ -116,6 +128,23 @@ onMounted(async () => {
 }
 
 .tiktok-burger:hover {
+  color: var(--ctp-text);
+  background: var(--ctp-surface0);
+}
+
+.tiktok-nav-btn {
+  background: none;
+  border: none;
+  color: var(--ctp-overlay0);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.1s, background 0.1s;
+}
+
+.tiktok-nav-btn:hover {
   color: var(--ctp-text);
   background: var(--ctp-surface0);
 }
