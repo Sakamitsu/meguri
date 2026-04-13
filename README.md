@@ -91,3 +91,6 @@ pnpm tauri dev
 - **Theme**: Catppuccin Mocha
 - **Plugins**: tauri-plugin-dialog, tauri-plugin-global-shortcut
 - **Multi-webview**: Tauri unstable API for embedded TikTok viewer
+
+## Showcase
+<img src="https://github.com/user-attachments/assets/8d17eb8c-fc05-4e6f-81ac-58a0647fd105" alt="example" width="500">
