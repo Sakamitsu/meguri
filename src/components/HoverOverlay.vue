@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import type { TimerState } from '../composables/useTimer'
 import { useAppState } from '../composables/useAppState'
 import { getCurrentWindow } from '@tauri-apps/api/window'
@@ -18,31 +18,95 @@ const emit = defineEmits<{
   stop: []
 }>()
 
-const { goToSettings, openTikTok } = useAppState()
+const { state, goToSettings, openTikTok, setActiveAction } = useAppState()
 
 const cornerTopLeft = ref(false)
 const cornerTopRight = ref(false)
 const cornerBottomRight = ref(false)
+const showActionMenu = ref(false)
+const focusedIndex = ref(-1)
+const menuRef = ref<HTMLElement | null>(null)
+
+function openActionMenu() {
+  showActionMenu.value = true
+  // Start with active action focused
+  const activeIdx = state.actions.findIndex(a => a.active)
+  focusedIndex.value = activeIdx >= 0 ? activeIdx : 0
+  nextTick(() => menuRef.value?.focus())
+}
+
+function handleMenuKeydown(e: KeyboardEvent) {
+  const len = state.actions.length
+  if (!len) return
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    focusedIndex.value = (focusedIndex.value + 1) % len
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    focusedIndex.value = (focusedIndex.value - 1 + len) % len
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (focusedIndex.value >= 0 && focusedIndex.value < len) {
+      pickAction(state.actions[focusedIndex.value].id)
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    showActionMenu.value = false
+  }
+}
 
 function startDrag() {
   getCurrentWindow().startDragging()
+}
+
+async function pickAction(id: string) {
+  showActionMenu.value = false
+  await setActiveAction(id)
 }
 </script>
 
 <template>
   <div class="hover-overlay">
-    <!-- Top-left: action name -->
+    <!-- Top-left: action name + picker -->
     <div
       class="corner top-left"
       @mouseenter="cornerTopLeft = true"
       @mouseleave="cornerTopLeft = false"
     >
       <Transition name="fade">
-        <span v-if="cornerTopLeft" class="action-name">
-          {{ activeActionName || 'No action' }}
-        </span>
+        <button
+          v-if="cornerTopLeft"
+          class="action-name-btn"
+          @click.stop="showActionMenu ? showActionMenu = false : openActionMenu()"
+        >
+          <span>{{ activeActionName || 'No action' }}</span>
+        </button>
       </Transition>
     </div>
+
+    <!-- Action picker menu (centered in overlay) -->
+    <Transition name="fade">
+      <div v-if="showActionMenu" class="action-menu-wrap" @click.stop="showActionMenu = false">
+        <div class="action-menu" ref="menuRef" tabindex="-1" @keydown="handleMenuKeydown" @click.stop>
+          <div class="action-menu-scroll">
+            <button
+              v-for="(action, i) in state.actions"
+              :key="action.id"
+              class="action-menu-item"
+              :class="{ active: action.active, focused: focusedIndex === i }"
+              @click="pickAction(action.id)"
+              @mouseenter="focusedIndex = i"
+            >
+              {{ action.name }}
+            </button>
+            <div v-if="state.actions.length === 0" class="action-menu-empty">
+              No actions
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Top-right: drag + settings -->
     <div
@@ -211,13 +275,116 @@ function startDrag() {
   font-variant-numeric: tabular-nums;
 }
 
-.action-name {
+.action-name-btn {
   font-size: 13px;
   color: var(--ctp-subtext0);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: background 0.1s, color 0.1s;
   max-width: 100%;
+  min-width: 0;
+}
+
+.action-name-btn span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.action-name-btn svg {
+  flex-shrink: 0;
+}
+
+.action-name-btn:hover {
+  color: var(--ctp-lavender);
+  background: rgba(180, 190, 254, 0.1);
+}
+
+.action-menu-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.action-menu {
+  position: relative;
+  background: var(--ctp-mantle);
+  border: 1px solid var(--ctp-surface1);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  overflow: hidden;
+}
+
+.action-menu-scroll {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.action-menu-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.action-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.action-menu-scroll::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface1);
+  border-radius: 2px;
+}
+
+.action-menu-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ctp-surface2);
+}
+
+.action-menu-item {
+  background: none;
+  border: none;
+  color: var(--ctp-subtext1);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.action-menu-item:hover,
+.action-menu-item.focused {
+  background: var(--ctp-surface0);
+  color: var(--ctp-text);
+}
+
+.action-menu-item.active {
+  color: var(--ctp-green);
+  font-weight: 600;
+}
+
+.action-menu-empty {
+  font-size: 11px;
+  color: var(--ctp-overlay0);
+  padding: 5px 10px;
 }
 
 .center {

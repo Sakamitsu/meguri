@@ -28,4 +28,5 @@ uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 tauri-plugin-dialog = "2.7.0"
 tokio = { version = "1", features = ["time"] }
+tauri-plugin-global-shortcut = "2.3.1"
 

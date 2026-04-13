@@ -14,6 +14,18 @@ pub struct Settings {
     pub tiktok_mode: bool,
     #[serde(default)]
     pub tiktok_url: String,
+    #[serde(default)]
+    pub hotkeys_enabled: bool,
+    #[serde(default)]
+    pub hotkey_move_top_left: String,
+    #[serde(default)]
+    pub hotkey_move_top_right: String,
+    #[serde(default)]
+    pub hotkey_move_bottom_left: String,
+    #[serde(default)]
+    pub hotkey_move_bottom_right: String,
+    #[serde(default)]
+    pub hotkey_start_stop: String,
 }
 
 fn default_widget_position() -> String {
@@ -29,6 +41,12 @@ impl Default for Settings {
             widget_position: default_widget_position(),
             tiktok_mode: false,
             tiktok_url: String::new(),
+            hotkeys_enabled: false,
+            hotkey_move_top_left: String::new(),
+            hotkey_move_top_right: String::new(),
+            hotkey_move_bottom_left: String::new(),
+            hotkey_move_bottom_right: String::new(),
+            hotkey_start_stop: String::new(),
         }
     }
 }

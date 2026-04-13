@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAppState } from '../composables/useAppState'
 import { useTimer } from '../composables/useTimer'
+import { onHotkeyAction, refreshHotkeys } from '../composables/useHotkeys'
 import ImageDisplay from './ImageDisplay.vue'
 import HoverOverlay from './HoverOverlay.vue'
 import ConfirmationPulse from './ConfirmationPulse.vue'
@@ -82,6 +83,31 @@ async function refreshImage() {
   showContextMenu.value = false
   await getRandomImage()
 }
+
+const positionActionMap: Record<string, typeof state.settings.widget_position> = {
+  move_top_left: 'top-left',
+  move_top_right: 'top-right',
+  move_bottom_left: 'bottom-left',
+  move_bottom_right: 'bottom-right',
+}
+
+onHotkeyAction(async (action) => {
+  if (action === 'start_stop') {
+    if (timerState.value === 'idle') {
+      handleStart()
+    } else if (timerState.value === 'running') {
+      handleStop()
+    } else if (timerState.value === 'confirming') {
+      await handleConfirm()
+    }
+  } else if (action in positionActionMap) {
+    await pickPosition(positionActionMap[action])
+  }
+})
+
+onMounted(() => {
+  refreshHotkeys()
+})
 </script>
 
 <template>

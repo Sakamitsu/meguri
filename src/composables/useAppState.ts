@@ -10,6 +10,12 @@ interface Settings {
   widget_position: 'bottom-left' | 'top-left' | 'top-right' | 'bottom-right'
   tiktok_mode: boolean
   tiktok_url: string
+  hotkeys_enabled: boolean
+  hotkey_move_top_left: string
+  hotkey_move_top_right: string
+  hotkey_move_bottom_left: string
+  hotkey_move_bottom_right: string
+  hotkey_start_stop: string
 }
 
 interface Action {
@@ -40,6 +46,12 @@ const state = reactive({
     widget_position: 'bottom-left',
     tiktok_mode: false,
     tiktok_url: '',
+    hotkeys_enabled: false,
+    hotkey_move_top_left: '',
+    hotkey_move_top_right: '',
+    hotkey_move_bottom_left: '',
+    hotkey_move_bottom_right: '',
+    hotkey_start_stop: '',
   } as Settings,
   actions: [] as Action[],
   stats: [] as StatEntry[],
